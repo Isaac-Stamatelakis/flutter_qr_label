@@ -56,6 +56,78 @@ abstract class DatabaseQuery<T> {
   dynamic getQuery();
 }
 
+abstract class CheckDatabaseQuery<T> {
+  Future<List<T>?> fromDatabase() async {
+    try {
+      List<T> queryResults = [];
+      QuerySnapshot querySnapshot = await getQuery().get();
+      for (QueryDocumentSnapshot snapshot in querySnapshot.docs) {
+        T result = fromDocument(snapshot);
+        if (check(result)) {
+          queryResults.add(result);
+        }
+      }
+      return queryResults;
+    } on FirebaseException catch (e) {
+      Logger().e('Error retrieving from database: $e');
+      return null;
+    }
+  }
+  dynamic fromDocument(DocumentSnapshot snapshot);
+
+  dynamic getQuery();
+  bool check(T result);
+}
+
+
+
+abstract class LimitSearchDatabaseQuery<T> {
+  final int amount;
+  final String search;
+  DocumentSnapshot? lastSnapshot;
+  bool complete = false;
+  LimitSearchDatabaseQuery({required this.amount, required this.search});
+  Future<List<T>?> fromDatabase() async {
+    try {
+      
+      List<T> queryResults = [];
+      int hardLimit = 20;
+      while (queryResults.length < amount) {
+        Query query = getQuery().limit(5*amount);
+        if (lastSnapshot != null) {
+          query = getNextQuery(query);
+        }
+        QuerySnapshot querySnapshot = await query.get();
+        if (querySnapshot.size == 0 || hardLimit < 0) {
+          complete = true;
+          break;
+        }
+        for (QueryDocumentSnapshot snapshot in querySnapshot.docs) {
+          T value = fromDocument(snapshot);
+          if (searchCheck(value)) {
+            queryResults.add(value);
+          }
+          lastSnapshot = snapshot;
+          if (queryResults.length == amount) {
+            break;
+          }
+        }
+        hardLimit --;
+      }
+      return queryResults;
+    } catch (e) {
+      Logger().e('Error retrieving from database: $e');
+      return null;
+    }
+  }
+  dynamic fromDocument(DocumentSnapshot snapshot);
+
+  Query getQuery();
+  Query getNextQuery(Query query);
+
+  bool searchCheck(T value);
+}
+
 /// Represents a class which represents a database counterpart
 abstract class DBClass {
   String? getID();
@@ -69,7 +141,7 @@ abstract class IDBManager<T extends DBClass> {
     if (value == null) {
       return;
     }
-    await getCollectionReference().doc(value.getID()).delete();
+    await getCollectionReference()!.doc(value.getID()).delete();
     Logger().i("Deleted ${getLogName()} ${value.getID()}");
     await additionalDeletes();
   }
@@ -82,7 +154,7 @@ abstract class IDBManager<T extends DBClass> {
     if (map.isEmpty) {
       return;
     }
-    await getCollectionReference().doc(value.getID()).update(map);
+    await getCollectionReference()!.doc(value.getID()).update(map);
     await additionalUpdates();
   }
 
@@ -98,7 +170,7 @@ abstract class IDBManager<T extends DBClass> {
     if (map.isEmpty) {
       return null;
     }
-    DocumentReference reference = await getCollectionReference().add(map);
+    DocumentReference reference = await getCollectionReference()!.add(map);
     Logger().i("${getLogName()} uploaded ${reference.id}");
     value.setID(reference.id);
     await additionalUploads();
@@ -114,7 +186,7 @@ abstract class IDBManager<T extends DBClass> {
   Future<void> additionalUploads() async {
     
   }
-  CollectionReference getCollectionReference();
+  CollectionReference? getCollectionReference();
   String getLogName();
   Map<String, dynamic> toJson(T? value);
 

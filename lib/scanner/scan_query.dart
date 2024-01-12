@@ -37,7 +37,7 @@ class PageQuery {
     List<DataQRCode> returnCodes = [];
     bool userHas = false;
     for (DataQRCode dataQRCode in dataCodeQueryResults!) {
-      if (dataQRCode.dbID == user.dbID) {
+      if (dataQRCode.ownerID == user.dbID) {
         userHas = true; 
         returnCodes.add(dataQRCode);
         dataCodeQueryResults.remove(dataQRCode);
@@ -51,7 +51,8 @@ class PageQuery {
     }
     if (userHas) {
       List<IScanPage> pages = [];
-      pages.add(EditScanPage(code: returnCodes.removeAt(0)));
+      pages.add(OwnedScanPage(code: returnCodes.removeAt(0)));
+      pages.add(pages[0]);
       for (DataQRCode dataQRCode in returnCodes) {
         pages.add(FriendQRPage(code: dataQRCode));
       }
@@ -64,8 +65,10 @@ class PageQuery {
         dbID: null, 
         ownerID: user.dbID, 
         hash: hash, 
-        data: {}, 
-        public: true
+        data: [], 
+        public: true, 
+        lastAccessed: DateTime.now(), 
+        publicEditable: false
       )));
       for (DataQRCode dataQRCode in returnCodes) {
         pages.add(FriendQRPage(code: dataQRCode));

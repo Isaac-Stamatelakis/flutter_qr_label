@@ -6,14 +6,14 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_label/global/loader.dart';
 import 'package:qr_label/scanner/dialog/on_scan_dialog.dart';
 import 'package:qr_label/scanner/dialog/scan_pages.dart';
-import 'package:qr_label/scanner/scan_sorter.dart';
+import 'package:qr_label/scanner/scan_query.dart';
 import 'package:qr_label/user/db_user.dart';
 import 'package:qr_label/user/user.dart';
 
-class QRScannerLoader extends WidgetLoader {
+class QRScannerLoader extends SizedWidgetLoader {
   final String userID;
 
-  const QRScannerLoader({super.key, required this.userID});
+  const QRScannerLoader({super.key, required this.userID}) : super(size: const Size(200,200));
   @override
   Widget generateContent(AsyncSnapshot snapshot) {
     return _QRScanner(user: snapshot.data);
@@ -98,7 +98,7 @@ class _QRViewState extends State<_QRScanner> {
     await _showScanDialog(pages);
     for (IScanPage page in pages) {
       if (page is MutablePage) {
-        await (page as MutablePage).updateOnClose();
+        await (page as MutablePage).actionOnClose();
       }
     }
     controller!.resumeCamera();
@@ -112,6 +112,7 @@ class _QRViewState extends State<_QRScanner> {
       }
     );
   }
+  
   @override
   void dispose() {
     controller?.dispose();

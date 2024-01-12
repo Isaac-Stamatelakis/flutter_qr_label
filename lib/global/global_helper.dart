@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// Contains commonly used methods
 class GlobalHelper {
   static double getPreferredWidth(BuildContext context) {
-    return min(400, MediaQuery.of(context).size.width/2);
+    return min(400, MediaQuery.of(context).size.width*3/4);
   }
 
   static String calculateSHA256(String input) {

@@ -16,7 +16,7 @@ class _OnScanDialogState extends State<OnScanDialog> {
     return AlertDialog(
       contentPadding: const EdgeInsets.all(0.0),
       content:Container(
-        height: MediaQuery.of(context).size.height*1/2,
+        height: MediaQuery.of(context).size.height*3/4,
         width: GlobalHelper.getPreferredWidth(context),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -31,7 +31,7 @@ class _OnScanDialogState extends State<OnScanDialog> {
             AppBar(
               backgroundColor: Colors.pink,
               title: const Text(
-                "HI",
+                "Scan Results",
                 style: TextStyle(
                   color: Colors.white
                 ),

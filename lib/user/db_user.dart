@@ -42,3 +42,27 @@ class UserDBManager extends IDBManager<User> {
   }
 
 }
+class UserFriendSearchQuery extends LimitSearchDatabaseQuery<User> {
+  final User user;
+  UserFriendSearchQuery({required this.user, required super.amount, required super.search});
+
+  @override
+  fromDocument(DocumentSnapshot<Object?> snapshot) {
+    return UserFactory.fromDocument(snapshot);
+  }
+
+  @override
+  Query<Object?> getQuery() {
+    return FirebaseFirestore.instance.collection("Users").where("friends",arrayContains: user.dbID).orderBy("first_name");
+  }
+
+  @override
+  bool searchCheck(User value) {
+    return value.getFullName().toLowerCase().contains(search.toLowerCase()) && user.friendIDs.contains(value.dbID!);
+  }
+  
+  @override
+  Query<Object?> getNextQuery(Query<Object?> query) {
+     return query.startAfter([(lastSnapshot!.data() as Map<String,dynamic>)['first_name']]);
+  }
+}

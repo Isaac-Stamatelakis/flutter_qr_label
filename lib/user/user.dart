@@ -22,6 +22,10 @@ class User implements DBClass{
     dbID = id;
   }
 
+  String getFullName() {
+    return "$firstName $lastName";
+  }
+
 }
 
 class UserFactory {
