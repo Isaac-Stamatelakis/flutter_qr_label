@@ -35,10 +35,25 @@ class UserDBManager extends IDBManager<User> {
     return {
       'first_name' : value.firstName,
       'last_name' : value.lastName,
-      'friend_request' : value.friendRequestIDs,
+      'friend_requests' : value.friendRequestIDs,
       'friends' : value.friendIDs,
       'friend_code_id' : value.friendCodeID
     };
+  }
+}
+
+class UserUIDQuery extends DatabaseQuery<User> {
+  final String uid;
+
+  UserUIDQuery({required this.uid});
+  @override
+  fromDocument(DocumentSnapshot<Object?> snapshot) {
+    return UserFactory.fromDocument(snapshot);
+  }
+
+  @override
+  getQuery() {
+    return FirebaseFirestore.instance.collection("Users").where("uid",isEqualTo: uid);
   }
 
 }

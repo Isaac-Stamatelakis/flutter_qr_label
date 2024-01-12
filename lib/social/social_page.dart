@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_label/auth/auth_services.dart';
 import 'package:qr_label/global/global_helper.dart';
 import 'package:qr_label/global/global_widgets.dart';
 import 'package:qr_label/global/loader.dart';
+import 'package:qr_label/main_scaffold.dart';
 import 'package:qr_label/social/edit_profile_dialog.dart';
 import 'package:qr_label/social/pagination_social.dart';
 import 'package:qr_label/user/db_user.dart';
@@ -49,7 +51,7 @@ class _SocialPageState extends State<_SocialPage> {
     return Stack(
       children: [
         Center(
-          child:Column( 
+          child: Column( 
           children: [
             const SizedBox(height: 20),
             SizedBox(
@@ -92,16 +94,22 @@ class _SocialPageState extends State<_SocialPage> {
                         onPress: _showEditDialog,
                         text: "Edit Profile", 
                         colors: [Colors.purple,Colors.indigo], 
-                        height: 215
-                        ),
+                        height: 97.5
+                      ),
+                      const SizedBox(height: 20),
+                      SquareGradientButton(
+                        onPress: _switchAccounts,
+                        text: "Change Account", 
+                        colors: [Colors.pink,Colors.purple], 
+                        height: 97.5
+                      ),
                     ],
                     )
                   )
-                  
                 ],
               ),
             ),
-            Flexible(child: FriendPagination(user: widget.user))
+            Flexible(child: FriendPagination(user: widget.user,))
             ],
           )
         )
@@ -117,6 +125,25 @@ class _SocialPageState extends State<_SocialPage> {
       }
     );
     await UserDBManager().update(widget.user);
+  }
+
+  void _switchAccounts(BuildContext context) async {
+    AuthService authService = AuthService();
+    await authService.signOut();
+    String? uid = await authService.signInWithGoogle();
+    if (uid != null) {
+      _loadNew(uid);
+    }
+    
+  }
+
+  void _loadNew(String uid) {
+    Navigator.pushReplacement (
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoadFromUID(uid: uid),
+        ),
+    );
   }
 }
 

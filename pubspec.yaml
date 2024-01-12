@@ -43,6 +43,7 @@ dependencies:
   crypto: ^3.0.3
   logger: ^2.0.2+1
   qr_flutter: ^4.0.0
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

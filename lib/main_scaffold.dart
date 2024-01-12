@@ -1,12 +1,61 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_label/collection/collection_page.dart';
+import 'package:qr_label/global/global_helper.dart';
 import 'package:qr_label/global/global_widgets.dart';
+import 'package:qr_label/global/loader.dart';
 import 'package:qr_label/main.dart';
+import 'package:qr_label/qrcode/db_qrcode.dart';
+import 'package:qr_label/qrcode/qrcode.dart';
+import 'package:qr_label/scanner/dialog/scan_pages.dart';
 import 'package:qr_label/scanner/scan_query.dart';
 import 'package:qr_label/scanner/scanner_page.dart';
 import 'package:qr_label/social/social_page.dart';
+import 'package:qr_label/user/db_user.dart';
+import 'package:qr_label/user/user.dart';
+
+class LoadFromUID extends WidgetLoader {
+  final String uid;
+
+  const LoadFromUID({super.key, required this.uid});
+  
+  @override
+  Widget generateContent(AsyncSnapshot snapshot) {
+    return MainScaffold(content: null, title: "Scanner", userID: snapshot.data.dbID, initalPage: MainPage.Scanner);
+  }
+  
+  @override
+  Future getFuture() async {
+    List<User>? users = await UserUIDQuery(uid: uid).fromDatabase();
+    if (users!.isEmpty) {
+      User user = User(
+        dbID: null, 
+        firstName: "Bob", 
+        lastName: "Doe", 
+        friendCodeID: null, 
+        friendIDs: [], 
+        friendRequestIDs: []
+      );
+      await UserDBManager().upload(user);
+      FriendQRCode friendQRCode = FriendQRCode(
+        dbID: null, 
+        ownerID: user.dbID, 
+        hash: GlobalHelper.calculateSHA256(user.dbID!)
+      );
+      await QRCodeDBManager<FriendQRCode>().upload(friendQRCode);
+      user.friendCodeID = friendQRCode.dbID;
+      await FirebaseFirestore.instance.collection("Users").doc(user.dbID).update({
+        'uid' : uid,
+        'friend_code_id' : user.friendCodeID
+      });
+      return user;
+    } else {
+      return users[0];
+    }
+  }
+}
 
 class MainScaffold extends StatefulWidget {
   final String? userID;

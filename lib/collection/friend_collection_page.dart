@@ -42,19 +42,19 @@ class _CollectionPageState extends APaginationState<DataQRCode> {
   
   @override
   Widget getList() {
-    return _CollectionQRList(user: widget.user, list: displayed);
+    return _FriendCollectionQRList(user: widget.user, list: displayed);
   }
 }
 
-class _CollectionQRList extends AbstractDataQRCodeList<User> {
-  const _CollectionQRList({required super.user, required super.list});
+class _FriendCollectionQRList extends AbstractDataQRCodeList<User> {
+  const _FriendCollectionQRList({required super.user, required super.list});
 
   @override
-  State<StatefulWidget> createState() => _CollectionQRListState();
+  State<StatefulWidget> createState() => _FriendCollectionQRListState();
 
 }
 
-class _CollectionQRListState extends AbstractDataQRCodeListState<User> {
+class _FriendCollectionQRListState extends AbstractDataQRCodeListState<User> {
   @override
   onLongPress(DataQRCode element, BuildContext context) {
     // Do nothing
@@ -63,7 +63,7 @@ class _CollectionQRListState extends AbstractDataQRCodeListState<User> {
   @override
   onPress(DataQRCode element, BuildContext context) async {
     if (element.publicEditable) {
-      OwnedScanPage page = OwnedScanPage(code: element);
+      FriendEditQRPage page = FriendEditQRPage(code: element);
       await showDialog(
         context: context, 
         builder: (BuildContext context) {
@@ -75,7 +75,7 @@ class _CollectionQRListState extends AbstractDataQRCodeListState<User> {
         
       });
     } else {
-      FriendQRPage page = FriendQRPage(code: element);
+      FriendViewQRPage page = FriendViewQRPage(code: element);
       await showDialog(
         context: context, 
         builder: (BuildContext context) {

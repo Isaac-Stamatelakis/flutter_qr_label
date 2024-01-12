@@ -126,9 +126,10 @@ class SingleButtonDialog extends StatelessWidget {
   }
 }
 
-class ConfirmationDialog extends StatelessWidget {
-  const ConfirmationDialog({super.key, required this.displayText, required this.onConfirmCallback});
-  final Function(BuildContext) onConfirmCallback;
+class ConfirmationDialog<T> extends StatelessWidget {
+  final T element;
+  const ConfirmationDialog({super.key, required this.displayText, required this.onConfirmCallback, required this.element});
+  final Function(T,BuildContext) onConfirmCallback;
   final String displayText;
   @override
   Widget build(BuildContext context) {
@@ -159,7 +160,9 @@ class ConfirmationDialog extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SquareGradientButtonSizeable(size: const Size(100,50), colors: [Colors.blue,Colors.blue.shade400],text: "Confirm",onPress: _onConfirm),
+                  SquareGradientButtonSizeable(size: const Size(100,50), colors: [Colors.blue,Colors.blue.shade400],text: "Confirm",onPress: (BuildContext) {
+                    _onConfirm(element, context);
+                  }),
                   const SizedBox(width: 20),
                   SquareGradientButtonSizeable(size: const Size(100,50), colors: [Colors.red,Colors.red.shade400],text: "Cancel",onPress: _popBack),
                 ],
@@ -171,9 +174,9 @@ class ConfirmationDialog extends StatelessWidget {
       )
     );
   }
-  void _onConfirm(BuildContext context) {
+  void _onConfirm(T element, BuildContext context) {
     _popBack(context);
-    onConfirmCallback(context);
+    onConfirmCallback(element,context);
     
   }
   void _popBack(BuildContext context) {

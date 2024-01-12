@@ -43,8 +43,14 @@ class _OwnedScanPageState extends State<OwnedScanPage> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              editMode ?  _EditPublicButtons(code: widget.code as DataQRCode) : Container(),
+              const _PageTitleCard(text: "Your Code", colors: [Colors.purple, Colors.indigo]),
               const SizedBox(height: 20),
+              editMode ?  Column(
+                children: [
+                  _EditPublicButtons(code: widget.code as DataQRCode),
+                  const SizedBox(height: 20),
+                ],
+              )  : Container(),
               buildList()
             ],
           ),
@@ -125,6 +131,8 @@ class _NewQRCodeDataPageState extends State<NewQRCodePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
+                const _PageTitleCard(text: "New Code", colors: [Colors.pink, Colors.cyan]),
+                const SizedBox(height: 20),
                 _EditPublicButtons(code: widget.code as DataQRCode),
                 const SizedBox(height: 20),
                 SquareGradientButton(
@@ -165,6 +173,7 @@ class _NewQRCodeDataPageState extends State<NewQRCodePage> {
   }
 }
 
+/// Lets friends edit the qr code data but not set public/private
 class FriendEditQRPage<T extends DataQRCode> extends IScanPage implements MutablePage {
   const FriendEditQRPage({super.key, required super.code});
 
@@ -188,7 +197,12 @@ class _FriendEditQRPageState extends State<FriendEditQRPage> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              editMode ?  _EditPublicButtons(code: widget.code as DataQRCode) : Container(),
+              _UserPageTitleCardLoader(
+              id: widget.code!.ownerID!, 
+                colors: const [Colors.purple,Colors.indigo],
+                endText: "'s Code",
+                fullName: false,
+              ),
               const SizedBox(height: 20),
               buildList()
             ],
@@ -219,13 +233,13 @@ class _FriendEditQRPageState extends State<FriendEditQRPage> {
   }
 }
 /// Viewable but immutable to viewer
-class FriendQRPage<T extends DataQRCode> extends IScanPage {
-  const FriendQRPage({super.key, required super.code});
+class FriendViewQRPage<T extends DataQRCode> extends IScanPage {
+  const FriendViewQRPage({super.key, required super.code});
   @override
-  State<StatefulWidget> createState() => _FriendQRPageState();
+  State<StatefulWidget> createState() => _FriendViewQRPageState();
 }
 
-class _FriendQRPageState extends State<FriendQRPage> {
+class _FriendViewQRPageState extends State<FriendViewQRPage> {
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -233,6 +247,13 @@ class _FriendQRPageState extends State<FriendQRPage> {
         SingleChildScrollView(
           child: Column(
             children: [
+              const SizedBox(height: 20),
+              _UserPageTitleCardLoader(
+                id: widget.code!.ownerID!, 
+                colors: const [Colors.purple, Colors.pink], 
+                endText: "'s Code", 
+                fullName: false,
+              ),
               const SizedBox(height: 20),
               KeyValueViewList(data: (widget.code as DataQRCode).data)
             ],
@@ -243,12 +264,16 @@ class _FriendQRPageState extends State<FriendQRPage> {
   }
 }
 class FriendScanPage<T extends FriendQRCode> extends IScanPage implements MutablePage {
-  FriendScanPage({super.key, required super.code});
-  final addFriendSingleList = [false]; // weird bypass for not putting late objects
+  final User? user;
+  FriendScanPage({super.key, required super.code, required this.user});
+  final List<bool> addFriendSingleList = [true]; // weird bypass for not putting late objects
 
   @override
   Future<void> actionOnClose() async {
-    
+    if (addFriendSingleList[0]) {
+      user!.friendIDs.add(code!.ownerID);
+      await UserDBManager().update(user);
+    }
   }
   
   @override
@@ -258,21 +283,18 @@ class FriendScanPage<T extends FriendQRCode> extends IScanPage implements Mutabl
 class _FriendScanPageState extends State<FriendScanPage> {
   @override
   Widget build(BuildContext context) {
-    return  Center(
+    return Center(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _UserNameLoader(dbID: widget.code!.ownerID!),
-            SquareGradientButton(
-              onPress: (BuildContext context) {
-                setState(() {
-                  widget.addFriendSingleList[0] = !widget.addFriendSingleList[0];
-                });
-              },
-              text: "Add as Friend", 
-              colors: !widget.addFriendSingleList[0] ? [Colors.green,Colors.green.shade300] : [Colors.red,Colors.red.shade300],
-              height: 50
-            )
+            _UserPageTitleCardLoader(
+              id: widget.code!.ownerID!, 
+              colors: const [Colors.orange,Colors.pink],
+              endText: "'s Friend Code",
+              fullName: true,
+            ),
+            const SizedBox(height: 20),
+            _FriendScanPageStateButton(addFriendSingleList: widget.addFriendSingleList)
           ],
         ),
       ),
@@ -280,27 +302,60 @@ class _FriendScanPageState extends State<FriendScanPage> {
   }
 }
 
-class _UserNameLoader extends WidgetLoader {
-  final String dbID;
-  _UserNameLoader({required this.dbID});
+class AlreadyFriendsScanPage<T extends FriendQRCode> extends IScanPage  {
+  const AlreadyFriendsScanPage({super.key, required super.code});
   @override
-  Widget generateContent(AsyncSnapshot snapshot) {
-    User? user = snapshot.data;
-    return Text(
-      user!.getFullName(),
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        color: Colors.white
+  State<StatefulWidget> createState() => _AlreadyFriendsScanPageState();
+}
+
+class _AlreadyFriendsScanPageState extends State<FriendScanPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _UserPageTitleCardLoader(
+              id: widget.code!.ownerID!, 
+              colors: const [Colors.orange,Colors.pink],
+              endText: "'s Friend Code",
+              fullName: true,
+            ),
+            const SizedBox(height: 20),
+            const _PageTitleCard(text: "You are already friends!", colors: [Colors.purple,Colors.pink])
+          ],
+        ),
       ),
     );
   }
+}
 
+class _FriendScanPageStateButton extends StatefulWidget {
+  final List<bool> addFriendSingleList;
+
+  const _FriendScanPageStateButton({required this.addFriendSingleList});
   @override
-  Future getFuture() {
-    return UserRetriever(id: dbID).fromDatabase();
+  State<StatefulWidget> createState() => _FriendScanPageStateButtonState();
+
+}
+
+class _FriendScanPageStateButtonState extends State<_FriendScanPageStateButton> {
+  @override
+  Widget build(BuildContext context) {
+    return SquareGradientButton(
+      onPress: (BuildContext context) {
+        setState(() {
+          widget.addFriendSingleList[0] = !widget.addFriendSingleList[0];
+        });
+      },
+      text: "Add as Friend", 
+      colors: widget.addFriendSingleList[0] ? [Colors.green,Colors.green.shade300] : [Colors.red,Colors.red.shade300],
+      height: 50
+    );
   }
 
 }
+
 class OwnFriendCodeQRPage<T extends FriendQRCode> extends IScanPage {
   const OwnFriendCodeQRPage({super.key, required super.code});
   
@@ -371,6 +426,60 @@ class _EditPublicButtonsState extends State<_EditPublicButtons> {
         ),
       ],
     );
+  }
+}
+
+class _UserPageTitleCardLoader extends WidgetLoader {
+  final String id;
+  final List<Color> colors;
+  final String endText;
+  final bool fullName;
+  const _UserPageTitleCardLoader({required this.id, required this.colors, required this.endText, required this.fullName});
+  @override
+  Widget generateContent(AsyncSnapshot snapshot) {
+    User? user = snapshot.data;
+    if (user == null) {
+      return const _PageTitleCard(text: "Unknown Users", colors: [Colors.red, Colors.orange]);
+    }
+    if (fullName) {
+      return _PageTitleCard(text: "${user.getFullName()}$endText", colors: colors);
+    }
+    return _PageTitleCard(text: "${user.firstName}$endText", colors: colors);
+    
+  }
+
+  @override
+  Future getFuture() {
+    return UserRetriever(id: id).fromDatabase();
+  }
+
+}
+
+class _PageTitleCard extends StatelessWidget{
+  final String text;
+  final List<Color> colors;
+
+  const _PageTitleCard({required this.text, required this.colors});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: ListTile(
+        title: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white
+          ),
+        ),
+      ),
+   );
   }
 
 }

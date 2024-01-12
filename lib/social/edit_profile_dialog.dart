@@ -6,7 +6,6 @@ import 'package:qr_label/user/user.dart';
 
 class EditProfileDialog extends StatefulWidget {
   final User user;
-  final bool editable = true;
   const EditProfileDialog({super.key, required this.user});
   @override
   State<StatefulWidget> createState() => _EditProfileDialogState();

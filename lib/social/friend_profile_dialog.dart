@@ -57,6 +57,7 @@ class _FriendProfileDialogState extends State<FriendProfileDialog> {
             Flexible(
               child: TextField(
               controller: TextEditingController(text: widget.friend.getFullName()),
+              readOnly: true,
               decoration: const InputDecoration(
                 labelText: 'Name',
                 labelStyle: TextStyle(
@@ -70,12 +71,16 @@ class _FriendProfileDialogState extends State<FriendProfileDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            SquareGradientButton(
-              onPress: _viewCollection, 
-              text: "View Collection", 
-              colors: [Colors.purple, Colors.purple.shade100], 
-              height: 80
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SquareGradientButton(
+                onPress: _viewCollection, 
+                text: "View Collection", 
+                colors: const [Colors.purple, Colors.indigo], 
+                height: 80
+              )
             )
+            
           ],
         )
       ),
@@ -83,7 +88,7 @@ class _FriendProfileDialogState extends State<FriendProfileDialog> {
   }
 
   void _viewCollection(BuildContext context) {
-    Navigator.push(
+    Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => 
         MainScaffold(

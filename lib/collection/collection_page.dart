@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_label/global/database_helper.dart';
+import 'package:qr_label/global/global_widgets.dart';
 import 'package:qr_label/global/loader.dart';
 import 'package:qr_label/global/pagination.dart';
 import 'package:qr_label/qrcode/dataqrcode_list.dart';
@@ -60,8 +61,19 @@ class _CollectionQRList extends AbstractDataQRCodeList<User> {
 class _CollectionQRListState extends AbstractDataQRCodeListState<User> {
   @override
   onLongPress(DataQRCode element, BuildContext context) {
-    // TODO: implement onLongPress
-    throw UnimplementedError();
+    showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return ConfirmationDialog<DataQRCode>(displayText: "Are you sure you want to delete this code?", onConfirmCallback: _onDeleteConfirmed, element: element);
+      }
+    );
+  }
+
+  Future<void> _onDeleteConfirmed(DataQRCode code, BuildContext context) async {
+    await QRCodeDBManager<DataQRCode>().delete(code);
+    setState(() {
+      widget.list!.remove(code);
+    });
   }
 
   @override

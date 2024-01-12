@@ -29,10 +29,17 @@ class PageQuery {
         return [OwnFriendCodeQRPage(code: friendQRCode)];
           
       } else {
-        Logger().i("Scan case friend code with hash : ${GlobalHelper.calculateSHA256(scan!.code!)}");
-        return [FriendScanPage(code: friendQRCode)];
+        if (user.friendIDs.contains(friendQRCode.ownerID)) {
+          Logger().i("Scan case already friends code with hash : ${GlobalHelper.calculateSHA256(scan!.code!)}");
+          return [AlreadyFriendsScanPage(code: friendQRCode)];
+        } else {
+          Logger().i("Scan case friend code with hash : ${GlobalHelper.calculateSHA256(scan!.code!)}");
+          return [FriendScanPage(code: friendQRCode, user: user)];
+        }
+        
       }
     }
+
     List<DataQRCode>? dataCodeQueryResults = await DataQRCodeHashQuery(hash: hash).fromDatabase();
     List<DataQRCode> returnCodes = [];
     bool userHas = false;
@@ -49,18 +56,11 @@ class PageQuery {
         returnCodes.add(dataQRCode);
       }
     }
+    List<IScanPage> pages = [];
     if (userHas) {
-      List<IScanPage> pages = [];
       pages.add(OwnedScanPage(code: returnCodes.removeAt(0)));
-      pages.add(pages[0]);
-      for (DataQRCode dataQRCode in returnCodes) {
-        pages.add(FriendQRPage(code: dataQRCode));
-      }
       Logger().i("Scan edit page with hash : ${GlobalHelper.calculateSHA256(scan!.code!)}");
-      return pages;
-      
     } else {
-      List<IScanPage> pages = [];
       pages.add(NewQRCodePage(code: DataQRCode(
         dbID: null, 
         ownerID: user.dbID, 
@@ -70,11 +70,16 @@ class PageQuery {
         lastAccessed: DateTime.now(), 
         publicEditable: false
       )));
-      for (DataQRCode dataQRCode in returnCodes) {
-        pages.add(FriendQRPage(code: dataQRCode));
-      }
       Logger().i("Scan new page code with hash : ${GlobalHelper.calculateSHA256(scan!.code!)}");
-      return pages;
     }
+    for (DataQRCode dataQRCode in returnCodes) {
+      if (dataQRCode.publicEditable) {
+        pages.add(FriendEditQRPage(code: dataQRCode));
+      } else {
+        pages.add(FriendViewQRPage(code: dataQRCode));
+      }
+    }
+    return pages;
+    
   }
 }

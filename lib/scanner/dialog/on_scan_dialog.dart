@@ -11,6 +11,8 @@ class OnScanDialog extends StatefulWidget {
 }
 
 class _OnScanDialogState extends State<OnScanDialog> {
+  final PageController _pageController = PageController();
+  late int _currentPage = 0;
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -26,7 +28,9 @@ class _OnScanDialogState extends State<OnScanDialog> {
           ),
         ),
         padding: const EdgeInsets.all(8),
-        child:  Column(
+        child: Stack(
+          children: [
+            Column(
           children: [
             AppBar(
               backgroundColor: Colors.pink,
@@ -48,6 +52,12 @@ class _OnScanDialogState extends State<OnScanDialog> {
               centerTitle: true,
             ),
             Flexible(child: PageView.builder(
+              onPageChanged: (BuildContext) {
+                setState(() {
+                  _currentPage = _pageController.page!.round();
+                });
+              },
+              controller: _pageController,
               itemCount: widget.pages.length,
               itemBuilder: (context, index) {
                 return Container(
@@ -62,9 +72,39 @@ class _OnScanDialogState extends State<OnScanDialog> {
                 );
                 },
               ),
-            )
+            ),
+
           ],
-        )
+        ),
+        Positioned(
+          bottom: 20,
+          left: 0,
+          right: 0,
+          child: _buildDotIndictators(),
+          )
+        
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDotIndictators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        widget.pages.length,
+        (index) {
+          return Container(
+            width: 8.0,
+            height: 8.0,
+            margin: EdgeInsets.symmetric(horizontal: 4.0),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _currentPage == index ? Colors.pink : Colors.grey,
+            ),
+          );
+        },
       ),
     );
   }

@@ -27,12 +27,11 @@ abstract class APaginationState<T> extends State<APagination> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Column(
+         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 40),
-             
             Row(
               children: [
                 const SizedBox(width: 20),
